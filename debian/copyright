@@ -12,7 +12,7 @@ Copyright: 2008 Stefan van der Walt <stefan@mentat.za.net>
            2008 Pauli Virtanen <pav@iki.fi>
 License: BSD-2-clause
 
-Files: doc/sphinxext/sphinxgallery/*
+Files: doc/sphinxext/sphinx_gallery/*
 Copyright: 2015, Óscar Nájera <najera.oscar@gmail.com>
 License: BSD-3-clause
 
