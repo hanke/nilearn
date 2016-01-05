@@ -1,3 +1,13 @@
+nilearn (0.2.1~dfsg.1-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * Add watch file.
+  * Normalize debian/control via CME.
+  * Update debian/copyright for directory rename.
+  * Add Python 3 package.
+
+ -- Michael Hanke <mih@debian.org>  Tue, 5 Jan 2016 20:35:15 +0200
+
 nilearn (0.1.4+git3-g60d2a1b~dfsg.1-1) UNRELEASED; urgency=low
 
   * Initial release (Closes: #792279).

@@ -14,15 +14,22 @@ Build-Depends: debhelper (>= 9~),
                python-matplotlib (>= 1.1.1),
                python-nibabel (>= 1.1.0),
                python-nose (>= 1.2.1),
-               python-coverage (>= 3.6)
-#  python3-all,
-#  python3-setuptools,
+               python-coverage (>= 3.6),
+               python3-all,
+               python3-setuptools,
+               python3-numpy (>= 1:1.6),
+               python3-scipy (>= 0.9),
+               python3-sklearn (>= 0.12.1),
+               python3-matplotlib (>= 1.1.1),
+               python3-nibabel (>= 1.1.0),
+               python3-nose (>= 1.2.1),
+               python3-coverage (>= 3.6),
 Standards-Version: 3.9.6
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-exppsy/nilearn.git
 Vcs-Git: git://anonscm.debian.org/pkg-exppsy/nilearn.git
 Homepage: https://nilearn.github.io
 X-Python-Version: >= 2.6
-#X-Python3-Version: >= 3.2
+X-Python3-Version: >= 3.2
 
 Package: python-nilearn
 Architecture: all
@@ -35,24 +42,28 @@ Depends: ${misc:Depends},
 Recommends: python-matplotlib
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
-Description: fast and easy statistical learning on neuroimaging data
+Description: fast and easy statistical learning on neuroimaging data (Python 2)
  This Python module leverages the scikit-learn toolbox for multivariate
  statistics with applications such as predictive modelling, classification,
  decoding, or connectivity analysis.
+ .
+ This package provides the Python 2 version.
 
-# enable once sklearn has py3 support
-#Package: python3-nilearn
-#Architecture: all
-#Depends: ${misc:Depends}, ${python3:Depends},
-#  python-numpy (>= 1:1.6),
-#  python-scipy (>= 0.9),
-#  python-sklearn (>= 0.12.1),
-#  python-nibabel (>= 1.1.0)
-#Recommends: python-matplotlib
-#Provides: ${python:Provides}
-#XB-Python-Version: ${python:Versions}
-#Description: fast and easy statistical learning on neuroimaging data
-# This Python module leverages the scikit-learn toolbox for multivariate
-# statistics with applications such as predictive modelling, classification,
-# decoding, or connectivity analysis.
+Package: python3-nilearn
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends},
+         python3-numpy (>= 1:1.6),
+         python3-scipy (>= 0.9),
+         python3-sklearn (>= 0.12.1),
+         python3-nibabel (>= 1.1.0)
+Recommends: python-matplotlib
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: fast and easy statistical learning on neuroimaging data (Python 3)
+ This Python module leverages the scikit-learn toolbox for multivariate
+ statistics with applications such as predictive modelling, classification,
+ decoding, or connectivity analysis.
+ .
+ This package provides the Python 3 version.
+
 

@@ -24,11 +24,10 @@ PYVER = $(shell pyversions -vd)
 
 # Mega rule
 %:
-# put back once the sklearn package builds py3 support in
-#	dh $@  --with python2,python3 --buildsystem=pybuild
-	dh $@  --with python2 --buildsystem=pybuild
+	dh $@  --with python2,python3 --buildsystem=pybuild
 
 override_dh_install:
+	rm -f .pybuild/*/build/.coverage
 	if [ -x /usr/bin/dh_numpy ]; then dh_numpy;	fi
 	dh_install
 
