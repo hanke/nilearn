@@ -1,4 +1,5 @@
 # Compulsory line, this is a version 3 file
 version=3
-http://pypi.debian.net/nilearn/nilearn-(.*).tar.gz
+opts=dversionmangle=s/~dfsg\.\d*$// \
+    http://pypi.debian.net/nilearn/nilearn-(.*).tar.gz
 
