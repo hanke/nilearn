@@ -1,14 +1,18 @@
 import os
-from distutils.version import LooseVersion
 import numpy as np
-import nibabel
-from nose import SkipTest
 
-from nilearn._utils.testing import assert_raises_regex
+from nose.tools import assert_equal
+
+from nibabel import Nifti1Image
+from sklearn.externals import joblib
+
+from nilearn.image import new_img_like
 from nilearn._utils import niimg
+from nilearn._utils.testing import assert_raises_regex
+
+
 
 currdir = os.path.dirname(os.path.abspath(__file__))
-datadir = os.path.join(currdir, 'data')
 
 
 def test_copy_img():
@@ -16,17 +20,17 @@ def test_copy_img():
                         niimg.copy_img, 3)
 
 
-def test_new_img_like_mgz():
-    """Check that new images can be generated with bool MGZ type
-    This is usually when computing masks using MGZ inputs, e.g.
-    when using plot_stap_map
-    """
+def test_copy_img_side_effect():
+    img1 = Nifti1Image(np.ones((2, 2, 2, 2)), affine=np.eye(4))
+    hash1 = joblib.hash(img1)
+    img2 = niimg.copy_img(img1)
+    hash2 = joblib.hash(img1)
+    assert_equal(hash1, hash2)
 
-    if not LooseVersion(nibabel.__version__) >= LooseVersion('1.2.0'):
-        # Old nibabel do not support MGZ files
-        raise SkipTest
 
-    ref_img = nibabel.load(os.path.join(datadir, 'test.mgz'))
-    data = np.ones(ref_img.get_data().shape, dtype=np.bool)
-    affine = ref_img.get_affine()
-    niimg.new_img_like(ref_img, data, affine, copy_header=False)
+def test_new_img_like_side_effect():
+    img1 = Nifti1Image(np.ones((2, 2, 2, 2)), affine=np.eye(4))
+    hash1 = joblib.hash(img1)
+    img2 = new_img_like(img1, np.ones((2, 2, 2, 2)), img1.get_affine().copy(), copy_header=True)
+    hash2 = joblib.hash(img1)
+    assert_equal(hash1, hash2)

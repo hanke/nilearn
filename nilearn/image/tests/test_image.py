@@ -2,15 +2,27 @@
 Test image pre-processing functions
 """
 from nose.tools import assert_true, assert_false
+from distutils.version import LooseVersion
+from nose import SkipTest
 
+import platform
+import os
 import nibabel
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_allclose
 
 from nilearn.image import image
 from nilearn.image import resampling
 from nilearn.image import concat_imgs
 from nilearn._utils import testing, niimg_conversions
+from nilearn.image import new_img_like
+from nilearn.image import threshold_img
+from nilearn.image import iter_img
+
+X64 = (platform.architecture()[0] == '64bit')
+
+currdir = os.path.dirname(os.path.abspath(__file__))
+datadir = os.path.join(currdir, 'data')
 
 
 def test_high_variance_confounds():
@@ -233,7 +245,17 @@ def test_mean_img():
         with testing.write_tmp_imgs(*imgs) as imgs:
             mean_img = image.mean_img(imgs)
             assert_array_equal(mean_img.get_affine(), affine)
-            assert_array_equal(mean_img.get_data(), truth)
+            if X64:
+                assert_array_equal(mean_img.get_data(), truth)
+            else:
+                # We don't really understand but arrays are not
+                # exactly equal on 32bit. Given that you can not do
+                # much real world data analysis with nilearn on a
+                # 32bit machine it is not worth investigating more
+                assert_allclose(mean_img.get_data(), truth,
+                                rtol=np.finfo(truth.dtype).resolution,
+                                atol=0)
+
 
 
 def test_mean_img_resample():
@@ -334,6 +356,8 @@ def test_iter_img():
                                expected_data_3d)
             assert_array_equal(img.get_affine(),
                                img_4d.get_affine())
+        # enables to delete "img_4d_filename" on windows
+        del img
 
     img_3d_list = list(image.iter_img(img_4d))
     for i, img in enumerate(image.iter_img(img_3d_list)):
@@ -350,3 +374,67 @@ def test_iter_img():
                                expected_data_3d)
             assert_array_equal(img.get_affine(),
                                img_4d.get_affine())
+        # enables to delete "img_3d_filename" on windows
+        del img
+
+
+def test_new_img_like_mgz():
+    """Check that new images can be generated with bool MGZ type
+    This is usually when computing masks using MGZ inputs, e.g.
+    when using plot_stap_map
+    """
+
+    if not LooseVersion(nibabel.__version__) >= LooseVersion('1.2.0'):
+        # Old nibabel do not support MGZ files
+        raise SkipTest
+
+    ref_img = nibabel.load(os.path.join(datadir, 'test.mgz'))
+    data = np.ones(ref_img.get_data().shape, dtype=np.bool)
+    affine = ref_img.get_affine()
+    new_img_like(ref_img, data, affine, copy_header=False)
+
+
+def test_new_img_like():
+    # Give a list to new_img_like
+    data = np.zeros((5, 6, 7))
+    data[2:4, 1:5, 3:6] = 1
+    affine = np.diag((4, 3, 2, 1))
+    img = nibabel.Nifti1Image(data, affine=affine)
+    img2 = new_img_like([img, ], data)
+    np.testing.assert_array_equal(img.get_data(), img2.get_data())
+
+
+def test_validity_threshold_value_in_threshold_img():
+    shape = (6, 8, 10)
+    maps = testing.generate_maps(shape, n_regions=2)
+    map_0 = maps[0]
+
+    # testing to raise same error when threshold=None case
+    testing.assert_raises_regex(ValueError,
+                                "The input parameter 'threshold' is empty. ",
+                                threshold_img, map_0, threshold=None)
+
+    invalid_threshold_values = ['90t%', 's%', 't', '0.1']
+    name = 'threshold'
+    for thr in invalid_threshold_values:
+        testing.assert_raises_regex(ValueError,
+                                    '{0}.+should be a number followed by '
+                                    'the percent sign'.format(name),
+                                    threshold_img, map_0, threshold=thr)
+
+
+def test_threshold_img():
+    # to check whether passes with valid threshold inputs
+    shape = (10, 20, 30)
+    maps = testing.generate_maps(shape, n_regions=4)
+    map_0 = maps[0]
+    affine = np.eye(4)
+    mask_img = nibabel.Nifti1Image(np.ones((shape), dtype=np.int8), affine)
+
+    for img in iter_img(map_0):
+        # when threshold is a float value
+        thr_maps_img = threshold_img(img, threshold=0.8)
+        # when we provide mask image
+        thr_maps_percent = threshold_img(img, threshold=1, mask_img=mask_img)
+        # when threshold is a percentile
+        thr_maps_percent2 = threshold_img(img, threshold='2%')

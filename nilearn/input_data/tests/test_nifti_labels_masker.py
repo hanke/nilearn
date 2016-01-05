@@ -20,7 +20,7 @@ def generate_random_img(shape, length=1, affine=np.eye(4),
                         rand_gen=np.random.RandomState(0)):
     data = rand_gen.randn(*(shape + (length,)))
     return nibabel.Nifti1Image(data, affine), nibabel.Nifti1Image(
-                    as_ndarray(data[..., 0] > 0.2, dtype=np.int8), affine)
+        as_ndarray(data[..., 0] > 0.2, dtype=np.int8), affine)
 
 
 def test_nifti_labels_masker():
@@ -118,9 +118,9 @@ def test_nifti_labels_masker_resampling():
 
     # With data of the same affine
     fmri11_img, _ = generate_random_img(shape1, affine=affine,
-                                                 length=length)
+                                        length=length)
     _, mask22_img = generate_random_img(shape2, affine=affine,
-                                                 length=length)
+                                        length=length)
 
     labels33_img = testing.generate_labeled_regions(shape3, n_regions,
                                                     affine=affine)
@@ -199,7 +199,6 @@ def test_nifti_labels_masker_resampling():
     assert_equal(fmri11_img_r.shape,
                  (masker.labels_img_.shape[:3] + (length,)))
 
-
     # Test with data and atlas of different shape: the atlas should be
     # resampled to the data
     shape22 = (5, 5, 6)
@@ -207,10 +206,15 @@ def test_nifti_labels_masker_resampling():
     affine2[-1, -1] = 1
 
     fmri22_img, _ = generate_random_img(shape22, affine=affine2,
-                                                 length=length)
+                                        length=length)
     masker = NiftiLabelsMasker(labels33_img, mask_img=mask22_img)
 
     masker.fit_transform(fmri22_img)
     np.testing.assert_array_equal(
         masker._resampled_labels_img_.get_affine(),
         affine2)
+
+    # Test with filenames
+    with testing.write_tmp_imgs(fmri22_img) as filename:
+        masker = NiftiLabelsMasker(labels33_img, resampling_target='data')
+        masker.fit_transform(filename)

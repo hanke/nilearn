@@ -1,7 +1,6 @@
 """
 Test the mask-extracting utilities.
 """
-import types
 import distutils.version
 import warnings
 import numpy as np
@@ -18,6 +17,7 @@ from nilearn.masking import (compute_epi_mask, compute_multi_epi_mask,
                              _unmask_4d, intersect_masks, MaskWarning)
 from nilearn._utils.testing import (write_tmp_imgs, assert_raises_regex)
 from nilearn._utils.exceptions import DimensionError
+from nilearn.input_data import NiftiMasker
 
 np_version = (np.version.full_version if hasattr(np.version, 'full_version')
               else np.version.short_version)
@@ -108,7 +108,7 @@ def test_apply_mask():
             data_img = Nifti1Image(data, affine)
             mask_img = Nifti1Image(mask, affine)
             with write_tmp_imgs(data_img, mask_img, create_files=create_files)\
-                     as filenames:
+                    as filenames:
                 series = masking.apply_mask(filenames[0], filenames[1],
                                             smoothing_fwhm=9)
 
@@ -262,7 +262,7 @@ def test_intersect_masks_filename():
     # +---+---+---+---+
 
     with write_tmp_imgs(mask_a_img, mask_b_img, create_files=True)\
-                     as filenames:
+            as filenames:
         mask_ab = np.zeros((4, 4, 1), dtype=np.bool)
         mask_ab[2, 2] = 1
         mask_ab_ = intersect_masks(filenames, threshold=1.)
@@ -389,3 +389,11 @@ def test_error_shape(random_state=42, shape=(3, 5, 7, 11)):
     X = rng.randn(n_samples, n_features)
     # Raises an error because the mask is 4D
     assert_raises(TypeError, unmask, X, mask_img)
+
+
+def test_nifti_masker_empty_mask_warning():
+    X = Nifti1Image(np.ones((2, 2, 2, 5)), np.eye(4))
+    assert_raises_regex(
+        ValueError,
+        "The mask is invalid as it is empty: it masks all data",
+        NiftiMasker(mask_strategy="epi").fit_transform, X)

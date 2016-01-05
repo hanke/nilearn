@@ -61,7 +61,7 @@ create_new_conda_env() {
     wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh \
         -O miniconda.sh
     chmod +x miniconda.sh && ./miniconda.sh -b
-    export PATH=/home/travis/miniconda/bin:$PATH
+    export PATH=/home/travis/miniconda2/bin:$PATH
     conda update --yes conda
 
     # Configure the conda environment and put it in the path using the
@@ -82,11 +82,13 @@ create_new_conda_env() {
 
 if [[ "$DISTRIB" == "neurodebian" ]]; then
     create_new_venv
+    pip install nose-timer
     bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
     sudo apt-get install -qq python-scipy python-nose python-nibabel python-sklearn
 
 elif [[ "$DISTRIB" == "conda" ]]; then
     create_new_conda_env
+    pip install nose-timer
     # Note: nibabel is in setup.py install_requires so nibabel will
     # always be installed eventually. Defining NIBABEL_VERSION is only
     # useful if you happen to want a specific nibabel version rather

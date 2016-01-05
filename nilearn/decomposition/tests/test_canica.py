@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 from nose.tools import assert_true, assert_raises
 import nibabel
+
 from nilearn._utils.testing import assert_less_equal
 from nilearn.decomposition.canica import CanICA
 from nilearn.image import iter_img
@@ -46,12 +47,17 @@ def _make_canica_components(shape):
                       component3.ravel(), component4.ravel()))
 
 
-def _make_canica_test_data(rng=None, n_subjects=8):
+def _make_canica_test_data(rng=None, n_subjects=8, noisy=False):
     if rng is None:
         rng = np.random.RandomState(0)
     shape = (20, 20, 1)
     affine = np.eye(4)
     components = _make_canica_components(shape)
+    if noisy:  # Creating noisy non positive data
+        components[rng.randn(*components.shape) > .8] *= -5.
+
+    for mp in components:
+        assert_less_equal(mp.max(), -mp.min())  # Goal met ?
 
     # Create a "multi-subject" dataset
     data = _make_data_from_components(components, affine, shape, rng=rng,
@@ -62,7 +68,7 @@ def _make_canica_test_data(rng=None, n_subjects=8):
 
 def test_canica_square_img():
     data, mask_img, components, rng = _make_canica_test_data()
- 
+
     # We do a large number of inits to be sure to find the good match
     canica = CanICA(n_components=4, random_state=rng, mask=mask_img,
                     smoothing_fwhm=0., n_init=50)
@@ -74,7 +80,7 @@ def test_canica_square_img():
     # Find pairs of matching components
     # compute the cross-correlation matrix between components
     K = np.corrcoef(components, maps.reshape(4, 400))[4:, :4]
-    # K should be a permutation matrix, hence its coefficients 
+    # K should be a permutation matrix, hence its coefficients
     # should all be close to 0 1 or -1
     K_abs = np.abs(K)
     assert_true(np.sum(K_abs > .9) == 4)
@@ -90,21 +96,8 @@ def test_component_sign():
     # CanICA to have more positive values than negative values, for
     # instance by making sure that the largest value is positive.
 
-    # make data (SVD)
-    rng = np.random.RandomState(0)
-    shape = (20, 10, 1)
-    affine = np.eye(4)
-    components = _make_canica_components(shape)
-
-    # make +ve
-    for mp in components:
-        mp[rng.randn(*mp.shape) > .8] *= -5.
-        assert_less_equal(mp.max(), -mp.min())  # goal met ?
-
-    # synthesize data with given components
-    data = _make_data_from_components(components, affine, shape, rng=rng,
-                                      n_subjects=2)
-    mask_img = nibabel.Nifti1Image(np.ones(shape, dtype=np.int8), affine)
+    data, mask_img, components, rng = _make_canica_test_data(n_subjects=2,
+                                                             noisy=True)
 
     # run CanICA many times (this is known to produce different results)
     canica = CanICA(n_components=4, random_state=rng, mask=mask_img)
