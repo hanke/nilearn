@@ -1,0 +1,15 @@
+W: python3-nilearn: python-module-in-wrong-location usr/lib/python3.5/dist-packages/.coverage usr/lib/python3/dist-packages/.coverage
+N: 
+N:    The package installs a Python module or debug information for a Python
+N:    module in the wrong location for the given version of Python.
+N:    
+N:    dh_python3 can be used to fix this for Python 3 modules.
+N:    
+N:    Refer to Debian Python Policy section 2.5 (Module Path) and
+N:    https://bugs.debian.org/576012 for details.
+N:    
+N:    Severity: normal, Certainty: possible
+N:    
+N:    Check: files, Type: binary, udeb
+N: 
+
